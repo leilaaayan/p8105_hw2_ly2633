@@ -11,6 +11,55 @@ library(tidyverse)
 ## Problem 1
 Read in the dataset
 ```{r}
-transit_df = read_csv("Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+transit_df = 
+  read_csv("Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  janitor::clean_names() %>%
+  select(line:entry, vending, ada) %>%
+  mutate(entry = case_match(entry, 
+                            "YES" ~ TRUE,
+                            "NO" ~ FALSE))
+```
+Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy? How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox); the distinct function may be useful here. How many stations are ADA compliant? What proportion of station entrances / exits without vending allow entrance?
+
+Answers:
+
+
+
+Reformat data so that route number and route name are distinct variables. 
+```{r}
+transit_df_long=
+  transit_df %>%
+  mutate(across(starts_with("route"), as.character)) %>%
+  pivot_longer(
+    route1:route11, 
+    names_to = "route_number", 
+    values_to = "route_name", 
+    values_drop_na = TRUE
+    )
 ```
 
+How many distinct stations serve the A train? Of the stations that serve the A train, how many are ADA compliant?
+```{r}
+stations_A_train =
+  transit_df_long %>%
+  filter(route_name == "A")
+
+
+distinct_stations_A_train =
+  stations_A_train %>%
+  distinct(station_name) %>%
+  nrow()
+
+ada_compliant_stations_A_train =
+  stations_A_train %>%
+  filter(ada == TRUE) %>%   # Filter for ADA compliant stations
+  distinct(station_name) %>%  # Get distinct station names
+  nrow()
+```
+
+Answers:
+
+
+## Problem 2
+
+## Problem 3
