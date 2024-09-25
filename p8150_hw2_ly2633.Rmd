@@ -58,8 +58,43 @@ ada_compliant_stations_A_train =
 ```
 
 Answers:
+16 stations that serve the A train are ADA compliant.
+
 
 
 ## Problem 2
 
+Read and clean the Mr. Trash Wheel sheet:
+- specify the sheet in the Excel file and to omit non-data entries (rows with notes / figures; columns containing notes) using arguments in read_excel
+- use reasonable variable names
+- omit rows that do not include dumpster-specific data
+- round the number of sports balls to the nearest integer and converts the result to an integer variable (using as.integer)
+
+```{r}
+library(readxl)
+mr_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
+  janitor::clean_names() %>%
+  filter(!is.na(`Dumpster`)) %>%
+  select(dumpster, date, Weight_tons,`Plastic Bottles`, `Polystyrene`, `Cigarette Butts`, 
+         `Glass Bottles`, `Plastic Bags`, `Wrappers`, `Sports Balls`)
+
+
+
+
+```
+
+Use a similar process to import, clean, and organize the data for Professor Trash Wheel and Gwynnda, and combine this with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to both datasets before combining.
+
+```{r}
+prof_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel")
+gwynnda_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel")
+```
+
+
+
 ## Problem 3
+
+```{r}
+
+```
+
