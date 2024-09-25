@@ -1,0 +1,16 @@
+---
+title: "p8105_hw2_ly2633"
+author: "Leila Yan"
+date: "2024-09-25"
+output: github_document
+---
+
+```{r setup}
+library(tidyverse)
+```
+## Problem 1
+Read in the dataset
+```{r}
+transit_df = read_csv("Data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv")
+```
+
