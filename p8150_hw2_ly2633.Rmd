@@ -72,7 +72,8 @@ Read and clean the Mr. Trash Wheel sheet:
 
 ```{r}
 library(readxl)
-mr_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
+mr_trash_wheel_df =
+  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(`Dumpster`)) %>%
   select(dumpster, date, Weight_tons,`Plastic Bottles`, `Polystyrene`, `Cigarette Butts`, 
@@ -93,8 +94,71 @@ gwynnda_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xl
 
 
 ## Problem 3
+Read in datasets, clean, and tidy
+```{r}
+bakers_df = 
+   read_csv("gbb_datasets/bakers.csv") %>%
+  janitor::clean_names()
 
+bakes_df = 
+   read_csv("gbb_datasets/bakes.csv") %>%
+  janitor::clean_names()
+
+results_df = 
+   read_csv("gbb_datasets/results.csv", skip=1) %>%
+  janitor::clean_names() 
+
+## how do I drop the x4, x5 columns?
+
+```
+
+
+check for completeness ???
+```{r}
+anti_join(bakes_df, bakers_df, results_df, by = "series")
+```
+Merge datasets into one
+```{r}
+baking_df = 
+  left_join(bakers_df, bakes_df, results_df, by = "series") %>%
+  arrange(series) %>%
+  relocate(series)
+
+```
+Export the result as a CSV in the directory containing the original datasets.
 ```{r}
 
 ```
 
+Describe your data cleaning process, including any questions you have or choices you made. Briefly discuss the final dataset.
+
+Answers:
+
+
+Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. Comment on this table – were there any predictable overall winners? Any surprises?
+```{r}
+
+```
+Answers:
+
+
+Import, clean, tidy, and organize the viewership data in viewership.csv. Show the first 10 rows of this dataset. 
+```{r}
+viewers_df = 
+   read_csv("gbb_datasets/viewers.csv") %>%
+  janitor::clean_names() %>%
+  drop_na(series_1, series_2) 
+# drop the NA values in the series_1 and the series_2 columns
+
+head(viewers_df, 10)
+```
+What was the average viewership in Season 1? In Season 5?
+```{r}
+viewers_df %>%
+  summarize(average_viewership_1 = mean(series_1, na.rm = TRUE))
+
+viewers_df %>%
+  summarize(average_viewership_5 = mean(series_5, na.rm = TRUE))
+```
+Answers:
+After performing some data claning steps by dropping the NA values from the series_1 and the series_2 columns, the average viewership in season 1 is 2.77 and that in season 5 is 9.485.
