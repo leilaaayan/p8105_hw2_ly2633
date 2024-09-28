@@ -19,10 +19,50 @@ transit_df =
                             "YES" ~ TRUE,
                             "NO" ~ FALSE))
 ```
-Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy? How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox); the distinct function may be useful here. How many stations are ADA compliant? What proportion of station entrances / exits without vending allow entrance?
+Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy? 
 
 Answers:
+The dataset contains information about the entrances and exits of subway stations in New York City. It includes several key variables: line, which identifies the subway line associated with each entrance or exit, and station_name, which provides the name of the station. The geographical coordinates of each station are given by station_latitude and station_longitude. The dataset also has columns for route1 through route11, which indicate the subway routes available at each station. entrance_type describes the type of entrance, such as stair, elevator, door, escalator, etc, while entry indicates whether entry is allowed at the specified location (TRUE/FALSE). The vending column shows whether there are vending machines available for purchasing tickets, and ada is a boolean variable indicating whether the entrance or exit is compliant with the Americans with Disabilities Act (ADA). This dataset contains 1868 entries and 32 columns (1868 x 32). Yes, the data is tidy after I performed the data cleaning steps, such as clean_names(). 
 
+The data cleaning process began by loading the dataset from a CSV file. Next, janitor::clean_names() was used to standardize column names, converting them to lowercase and snake_case for easier reference. After that, specific columns were selected, including those from line through entry, as well as vending and ada, which were deemed most relevant for the analysis. Finally, the entry column was modified using case_match() to convert the original values of "YES" and "NO" into logical values (TRUE and FALSE), making the data easier to work with.
+
+
+How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox); the distinct function may be useful here. How many stations are ADA compliant? What proportion of station entrances / exits without vending allow entrance?
+```{r}
+#distinct stations
+distinct_stations = 
+  transit_df %>%
+  distinct(line, station_name) %>%
+  nrow()
+
+distinct_stations
+
+#ada compliance
+ada_compliant_stations =
+  transit_df %>%
+  filter(ada == TRUE) %>%
+  distinct(line, station_name) %>%
+  nrow()
+
+ada_compliant_stations
+
+#proportion of station/entrances/exits without vending allow entrance
+without_vending_entry = 
+  transit_df %>%
+  filter(vending == "NO", entry == TRUE) %>%
+  nrow()
+
+total_without_vending =
+  transit_df %>%
+  filter(vending == "NO") %>%
+  nrow()
+
+proportion_without_vending_entry <- without_vending_entry / total_without_vending
+
+proportion_without_vending_entry
+```
+Answers:
+The dataset contains a total of 465 distinct subway stations in New York City, where stations are identified by both name and line. Out of these stations, 84 are compliant with ADA. Additionally, around 37.7% of station entrances or exits that do not have vending machines still allow entry. These metrics provide insights into the accessibility and functionality of the NYC subway system.
 
 
 Reformat data so that route number and route name are distinct variables. 
@@ -50,15 +90,18 @@ distinct_stations_A_train =
   distinct(station_name) %>%
   nrow()
 
+distinct_stations_A_train
+
 ada_compliant_stations_A_train =
   stations_A_train %>%
   filter(ada == TRUE) %>%   # Filter for ADA compliant stations
   distinct(station_name) %>%  # Get distinct station names
   nrow()
-```
 
+ada_compliant_stations_A_train
+```
 Answers:
-16 stations that serve the A train are ADA compliant.
+56 distinct stations serve the A train. Of the stations that serve the A train, 16 stations are ADA compliant.
 
 
 
@@ -96,38 +139,42 @@ gwynnda_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xl
 ## Problem 3
 Read in datasets, clean, and tidy
 ```{r}
+# remove bakers' last name and convert baker_name to baker
 bakers_df = 
    read_csv("gbb_datasets/bakers.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  mutate(baker = sub(" .*", "", baker_name)) %>% 
+  select(-baker_name)
 
 bakes_df = 
    read_csv("gbb_datasets/bakes.csv") %>%
   janitor::clean_names()
 
 results_df = 
-   read_csv("gbb_datasets/results.csv", skip=1) %>%
+   read_csv("gbb_datasets/results.csv", skip=2) %>%
   janitor::clean_names() 
-
-## how do I drop the x4, x5 columns?
-
 ```
 
-
-check for completeness ???
+check for completeness
 ```{r}
-anti_join(bakes_df, bakers_df, results_df, by = "series")
+anti_join(bakes_df, bakers_df, results_df, by = "baker")
 ```
+
 Merge datasets into one
 ```{r}
-baking_df = 
-  left_join(bakers_df, bakes_df, results_df, by = "series") %>%
+mergeingtwo_df = 
+  left_join(bakers_df, bakes_df, by = "baker")
+
+bakingmerged_df = 
+  left_join(mergeingtwo_df, results_df, by = "baker") %>%
   arrange(series) %>%
   relocate(series)
 
+#?????? two episode columns and three series columns
 ```
 Export the result as a CSV in the directory containing the original datasets.
 ```{r}
-
+write_csv(bakingmerged_df, "gbb_datasets/bakingmerged_df.csv")
 ```
 
 Describe your data cleaning process, including any questions you have or choices you made. Briefly discuss the final dataset.
@@ -136,19 +183,30 @@ Answers:
 
 
 Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. Comment on this table – were there any predictable overall winners? Any surprises?
-```{r}
 
+???? how do I create a table
+
+```{r}
+library(knitr)
+
+star_bakers =
+  bakingmerged_df %>%
+  filter(result == "STAR BAKER" | result == "WINNER") %>%
+  select(series, episode.x, baker, result) %>%
+  filter(series >= 5 & series <= 10) %>% 
+  arrange(series, episode.x) %>%
+  kable(col.names = c("series", "episode.x", "baker", "result"))
 ```
 Answers:
+
+
 
 
 Import, clean, tidy, and organize the viewership data in viewership.csv. Show the first 10 rows of this dataset. 
 ```{r}
 viewers_df = 
    read_csv("gbb_datasets/viewers.csv") %>%
-  janitor::clean_names() %>%
-  drop_na(series_1, series_2) 
-# drop the NA values in the series_1 and the series_2 columns
+  janitor::clean_names() 
 
 head(viewers_df, 10)
 ```
@@ -161,4 +219,4 @@ viewers_df %>%
   summarize(average_viewership_5 = mean(series_5, na.rm = TRUE))
 ```
 Answers:
-After performing some data claning steps by dropping the NA values from the series_1 and the series_2 columns, the average viewership in season 1 is 2.77 and that in season 5 is 9.485.
+The average viewership in season 1 is 2.77 and that in season 5 is 10.0393.
