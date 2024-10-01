@@ -116,7 +116,7 @@ Read and clean the Mr. Trash Wheel sheet:
 ```{r}
 library(readxl)
 mr_trash_wheel_df =
-  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
+  read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster)) %>%  # Omit rows where the 'dumpster' column is NA
   select(where(~ !all(is.na(.)))) %>% # omit non-data entries
@@ -128,12 +128,12 @@ Use a similar process to import, clean, and organize the data for Professor Tras
 
 ```{r}
 prof_trash_wheel_df =
-  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
+  read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster))
 
 gwynnda_trash_wheel_df =
-  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
+  read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster))
 
@@ -173,7 +173,7 @@ total_cigarette_butts =
 
 print(total_cigarette_butts)
 ```
-The total weight of trash collected by Professor Trash Wheel is 216.26 tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is 18120. The combined dataset, combined_trash_wheel_df, contains 845 observations from three different trash wheel datasets (gwynnda_trash_wheel_df, prof_trash_wheel_df, and mr_trash_wheel_df). Each observation represents a collection event over various dates, capturing data such as the number of plastic bottles, polystyrene, and cigarette butts collected, as well as the weight and volume of trash in each dumpster. Key variables include dumpster, which identifies collection events, and temporal variables like month, year, and date. Waste metrics include weight_tons and volume_cubic_yards, providing measures of the collected trash volume. The dataset also tracks specific types of waste, such as plastic_bottles, polystyrene, and cigarette_butts. Additionally, some columns, such as glass_bottles, homes_powered, and sports_balls, contain NA values, indicating that these measurements were not consistently recorded across all trash wheels. This comprehensive dataset is valuable for analyzing temporal and spatial trends in waste collection, understanding the environmental impact, and informing waste management strategies. Insights derived from this data can support targeted interventions to reduce specific types of waste, like plastic or cigarette butts, and provide a broader understanding of changes in waste generation patterns over time.
+The total weight of trash collected by Professor Trash Wheel is 246.74 tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is 18120. The combined dataset, combined_trash_wheel_df, contains 845 observations from three different trash wheel datasets (gwynnda_trash_wheel_df, prof_trash_wheel_df, and mr_trash_wheel_df). Each observation represents a collection event over various dates, capturing data such as the number of plastic bottles, polystyrene, and cigarette butts collected, as well as the weight and volume of trash in each dumpster. Key variables include dumpster, which identifies collection events, and temporal variables like month, year, and date. Waste metrics include weight_tons and volume_cubic_yards, providing measures of the collected trash volume. The dataset also tracks specific types of waste, such as plastic_bottles, polystyrene, and cigarette_butts. Additionally, some columns, such as glass_bottles, homes_powered, and sports_balls, contain NA values, indicating that these measurements were not consistently recorded across all trash wheels. This comprehensive dataset is valuable for analyzing temporal and spatial trends in waste collection, understanding the environmental impact, and informing waste management strategies. Insights derived from this data can support targeted interventions to reduce specific types of waste, like plastic or cigarette butts, and provide a broader understanding of changes in waste generation patterns over time.
 
 ## Problem 3
 Read in datasets, clean, and tidy
@@ -219,6 +219,9 @@ write_csv(bakingmerged_df, "gbb_datasets/bakingmerged_df.csv")
 Describe your data cleaning process, including any questions you have or choices you made. Briefly discuss the final dataset.
 
 Answers:
+In the data cleaning process, I began by standardizing column names across datasets using janitor::clean_names() for consistency. In the bakers_df, I simplified the baker identification by extracting only the first name from the baker_name column using mutate, and removed the original baker_name column with select(-baker_name). This choice was made to avoid complexity when joining datasets, although it raises the question of whether using only the first name might lead to ambiguity if there are bakers with the same first name. The bakes_df and results_df were also read in and cleaned similarly, with results_df requiring skipping the first two rows to properly align the data structure.
+
+I checked for completeness by using anti_join() to identify bakers present in bakes_df, results_df, and bakers_df, ensuring that no key records were missing for merging. For merging, I used left_join() twice: first to combine bakers_df and bakes_df into mergeingtwo_df, then to join results_df with mergeingtwo_df to form bakingmerged_df. I chose left_join() to retain all bakers, even if they didn’t have corresponding entries in the bakes or results datasets, which is important for maintaining the full list of participants. Finally, I arranged the data by series and relocated this column to the beginning for easier readability and analysis. The final dataset, bakingmerged_df, is structured to provide comprehensive information on each baker, including their details, bakes, and results, facilitating subsequent analysis of performance across different series.
 
 
 Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. Comment on this table – were there any predictable overall winners? Any surprises?
