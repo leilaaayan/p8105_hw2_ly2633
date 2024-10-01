@@ -118,23 +118,62 @@ library(readxl)
 mr_trash_wheel_df =
   read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
   janitor::clean_names() %>%
-  filter(!is.na(`Dumpster`)) %>%
-  select(dumpster, date, Weight_tons,`Plastic Bottles`, `Polystyrene`, `Cigarette Butts`, 
-         `Glass Bottles`, `Plastic Bags`, `Wrappers`, `Sports Balls`)
-
-
-
+  filter(!is.na(dumpster)) %>%  # Omit rows where the 'dumpster' column is NA
+  select(where(~ !all(is.na(.)))) %>% # omit non-data entries
+  mutate(sports_balls = as.integer(round(sports_balls)))
 
 ```
 
 Use a similar process to import, clean, and organize the data for Professor Trash Wheel and Gwynnda, and combine this with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to both datasets before combining.
 
 ```{r}
-prof_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel")
-gwynnda_trash_wheel_df <- read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel")
+prof_trash_wheel_df =
+  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
+  janitor::clean_names() %>%
+  filter(!is.na(dumpster))
+
+gwynnda_trash_wheel_df =
+  read_excel("Data/202309 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
+  janitor::clean_names() %>%
+  filter(!is.na(dumpster))
+
+# convert year column to character for consistency
+gwynnda_trash_wheel_df <- gwynnda_trash_wheel_df %>%
+  mutate(year = as.character(year))
+
+prof_trash_wheel_df <- prof_trash_wheel_df %>%
+  mutate(year = as.character(year))
+
+mr_trash_wheel_df <- mr_trash_wheel_df %>%
+  mutate(year = as.character(year))
+
+# Now combine the datasets
+combined_trash_wheel_df <- bind_rows(
+  gwynnda_trash_wheel_df,
+  prof_trash_wheel_df,
+  mr_trash_wheel_df
+)
+
 ```
 
+Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in the resulting dataset, and give examples of key variables. For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in June of 2022?
 
+```{r}
+#total weight of trash collected by Professor Trash Wheel
+total_weight =
+  prof_trash_wheel_df %>%
+  summarise(total_weight_tons = sum(weight_tons, na.rm = TRUE))
+
+print(total_weight)
+
+total_cigarette_butts =
+  gwynnda_trash_wheel_df %>%
+  filter(month == "June", year == 2022) %>%  # Filter for June 2022
+  summarise(total_cigarette_butts = sum(cigarette_butts, na.rm = TRUE))  # Sum the cigarette butts
+
+print(total_cigarette_butts)
+```
+The total weight of trash collected by Professor Trash Wheel is 216.26 tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is 18120. The combined dataset, combined_trash_wheel_df, contains 845 observations from three different trash wheel datasets (gwynnda_trash_wheel_df, prof_trash_wheel_df, and mr_trash_wheel_df). Each observation represents a collection event over various dates, capturing data such as the number of plastic bottles, polystyrene, and cigarette butts collected, as well as the weight and volume of trash in each dumpster. Key variables include dumpster, which identifies collection events, and temporal variables like month, year, and date. Waste metrics include weight_tons and volume_cubic_yards, providing measures of the collected trash volume. The dataset also tracks specific types of waste, such as plastic_bottles, polystyrene, and cigarette_butts. Additionally, some columns, such as glass_bottles, homes_powered, and sports_balls, contain NA values, indicating that these measurements were not consistently recorded across all trash wheels. This comprehensive dataset is valuable for analyzing temporal and spatial trends in waste collection, understanding the environmental impact, and informing waste management strategies. Insights derived from this data can support targeted interventions to reduce specific types of waste, like plastic or cigarette butts, and provide a broader understanding of changes in waste generation patterns over time.
 
 ## Problem 3
 Read in datasets, clean, and tidy
