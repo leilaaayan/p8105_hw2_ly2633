@@ -119,10 +119,15 @@ mr_trash_wheel_df =
   read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Mr. Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster)) %>%  # Omit rows where the 'dumpster' column is NA
-  select(where(~ !all(is.na(.)))) %>% # omit non-data entries
+ # select(where(~ !all(is.na(.)))) %>% # omit non-data entries
   mutate(sports_balls = as.integer(round(sports_balls)))
 
+
+
+mr_trash_wheel = read_excel("Data/202409 Trash Wheel Collection Data.xlsx", range="A2:N587") %>% janitor:: clean_names() %>% mutate(sports_balls = round(as.numeric(sports_balls),0)) %>% filter(!is.na(dumpster))
+
 ```
+585 observations 14 columns
 
 Use a similar process to import, clean, and organize the data for Professor Trash Wheel and Gwynnda, and combine this with the Mr. Trash Wheel dataset to produce a single tidy dataset. To keep track of which Trash Wheel is which, you may need to add an additional variable to both datasets before combining.
 
@@ -131,11 +136,13 @@ prof_trash_wheel_df =
   read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Professor Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster))
+# 119 entries, 13 columns
 
 gwynnda_trash_wheel_df =
   read_excel("Data/202409 Trash Wheel Collection Data.xlsx", sheet = "Gwynnda Trash Wheel") %>%
   janitor::clean_names() %>%
   filter(!is.na(dumpster))
+# 263 entries, 12 columns
 
 # convert year column to character for consistency
 gwynnda_trash_wheel_df <- gwynnda_trash_wheel_df %>%
@@ -175,6 +182,7 @@ print(total_cigarette_butts)
 ```
 The total weight of trash collected by Professor Trash Wheel is 246.74 tons. The total number of cigarette butts collected by Gwynnda in June of 2022 is 18120. The combined dataset, combined_trash_wheel_df, contains 845 observations from three different trash wheel datasets (gwynnda_trash_wheel_df, prof_trash_wheel_df, and mr_trash_wheel_df). Each observation represents a collection event over various dates, capturing data such as the number of plastic bottles, polystyrene, and cigarette butts collected, as well as the weight and volume of trash in each dumpster. Key variables include dumpster, which identifies collection events, and temporal variables like month, year, and date. Waste metrics include weight_tons and volume_cubic_yards, providing measures of the collected trash volume. The dataset also tracks specific types of waste, such as plastic_bottles, polystyrene, and cigarette_butts. Additionally, some columns, such as glass_bottles, homes_powered, and sports_balls, contain NA values, indicating that these measurements were not consistently recorded across all trash wheels. This comprehensive dataset is valuable for analyzing temporal and spatial trends in waste collection, understanding the environmental impact, and informing waste management strategies. Insights derived from this data can support targeted interventions to reduce specific types of waste, like plastic or cigarette butts, and provide a broader understanding of changes in waste generation patterns over time.
 
+
 ## Problem 3
 Read in datasets, clean, and tidy
 ```{r}
@@ -187,11 +195,13 @@ bakers_df =
 
 bakes_df = 
    read_csv("gbb_datasets/bakes.csv") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  drop_na()
 
 results_df = 
    read_csv("gbb_datasets/results.csv", skip=2) %>%
-  janitor::clean_names() 
+  janitor::clean_names() %>%
+  drop_na()
 ```
 
 check for completeness
@@ -207,9 +217,12 @@ mergeingtwo_df =
 bakingmerged_df = 
   left_join(mergeingtwo_df, results_df, by = "baker") %>%
   arrange(series) %>%
+  select(-series.x, -series.y, -episode.y) %>%
   relocate(series)
 
-#?????? two episode columns and three series columns
+
+# Display the cleaned merged dataset
+print(bakingmerged_df)
 ```
 Export the result as a CSV in the directory containing the original datasets.
 ```{r}
@@ -221,12 +234,10 @@ Describe your data cleaning process, including any questions you have or choices
 Answers:
 In the data cleaning process, I began by standardizing column names across datasets using janitor::clean_names() for consistency. In the bakers_df, I simplified the baker identification by extracting only the first name from the baker_name column using mutate, and removed the original baker_name column with select(-baker_name). This choice was made to avoid complexity when joining datasets, although it raises the question of whether using only the first name might lead to ambiguity if there are bakers with the same first name. The bakes_df and results_df were also read in and cleaned similarly, with results_df requiring skipping the first two rows to properly align the data structure.
 
-I checked for completeness by using anti_join() to identify bakers present in bakes_df, results_df, and bakers_df, ensuring that no key records were missing for merging. For merging, I used left_join() twice: first to combine bakers_df and bakes_df into mergeingtwo_df, then to join results_df with mergeingtwo_df to form bakingmerged_df. I chose left_join() to retain all bakers, even if they didn’t have corresponding entries in the bakes or results datasets, which is important for maintaining the full list of participants. Finally, I arranged the data by series and relocated this column to the beginning for easier readability and analysis. The final dataset, bakingmerged_df, is structured to provide comprehensive information on each baker, including their details, bakes, and results, facilitating subsequent analysis of performance across different series.
+I checked for completeness by using anti_join() to identify bakers present in bakes_df, results_df, and bakers_df, ensuring that no key records were missing for merging. For merging, I used left_join() twice: first to combine bakers_df and bakes_df into mergeingtwo_df, then to join results_df with mergeingtwo_df to form bakingmerged_df. I chose left_join() to retain all bakers, even if they didn’t have corresponding entries in the bakes or results datasets, which is important for maintaining the full list of participants. Finally, I arranged the data by series and relocated this column to the beginning for easier readability and analysis. In the final merged dataset, I removed the extra two series columns and the extra episode column to clean and tidy the dataset. The final dataset is structured to provide comprehensive information on each baker, including their details, bakes, and results, facilitating subsequent analysis of performance across different series.
 
 
 Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. Comment on this table – were there any predictable overall winners? Any surprises?
-
-???? how do I create a table
 
 ```{r}
 library(knitr)
@@ -236,11 +247,16 @@ star_bakers =
   filter(result == "STAR BAKER" | result == "WINNER") %>%
   select(series, episode.x, baker, result) %>%
   filter(series >= 5 & series <= 10) %>% 
+  distinct(series, episode.x, baker, .keep_all = TRUE) %>%
   arrange(series, episode.x) %>%
   kable(col.names = c("series", "episode.x", "baker", "result"))
-```
-Answers:
+print(star_bakers)
 
+write_csv(star_bakers, "star_bakers_summary.csv")
+```
+
+Answers:
+For instance, bakers like Kate, who consistently won the "STAR BAKER" title across multiple episodes, appeared to be strong contenders for the overall win, indicating predictability in their high performance throughout the series. However, there were also surprising elements, such as Nancy winning the overall "WINNER" title despite fewer "STAR BAKER" titles compared to others like Kate or Richard, suggesting that Nancy's performance peaked at crucial moments. Such variability highlights both predictable trends in consistent bakers and unexpected wins by those who may have outperformed when it mattered most.
 
 
 
@@ -252,6 +268,8 @@ viewers_df =
 
 head(viewers_df, 10)
 ```
+
+
 What was the average viewership in Season 1? In Season 5?
 ```{r}
 viewers_df %>%
