@@ -165,7 +165,7 @@ combined_trash_wheel_df <- bind_rows(
 
 Write a paragraph about these data; you are encouraged to use inline R. Be sure to note the number of observations in the resulting dataset, and give examples of key variables. For available data, what was the total weight of trash collected by Professor Trash Wheel? What was the total number of cigarette butts collected by Gwynnda in June of 2022?
 
-```{r}
+```{r setup, include=FALSE}
 #total weight of trash collected by Professor Trash Wheel
 total_weight =
   prof_trash_wheel_df %>%
