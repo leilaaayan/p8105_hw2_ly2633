@@ -274,9 +274,7 @@ star_bakers =
   select(series, episodes, baker, result) %>%
   filter(series >= 5 & series <= 10) %>% 
   distinct(series, episodes, baker, .keep_all = TRUE) %>%
-  arrange(series, episodes) %>%
-  kable(col.names = c("series", "episodes", "baker", "result"))
-
+  arrange(series, episodes)
 
 print(star_bakers)
 ```
